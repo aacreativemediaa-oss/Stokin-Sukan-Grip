@@ -1,0 +1,6 @@
+node_modules
+.hyperframes/
+out/render.log
+assets/clips/
+out/*
+!out/stokin-sukan-grip-v2.mp4

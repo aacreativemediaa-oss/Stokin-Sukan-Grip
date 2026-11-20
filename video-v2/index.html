@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="ms" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="assets/vendor/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "Anton"; src: url("assets/fonts/anton.woff2") format("woff2"); font-weight: 400; }
+      @font-face { font-family: "Montserrat"; src: url("assets/fonts/montserrat-700.woff2") format("woff2"); font-weight: 700; }
+      @font-face { font-family: "Montserrat"; src: url("assets/fonts/montserrat-800.woff2") format("woff2"); font-weight: 800; }
+      @font-face { font-family: "Montserrat"; src: url("assets/fonts/montserrat-900.woff2") format("woff2"); font-weight: 900; }
+
+      :root {
+        /* Title / label sizes are written at first-version size and multiplied by --k (= 70%).
+           Captions are a fixed 60 px. */
+        --k: 0.7;
+        --yellow: #ffe600;
+        --neon: #39ff14;
+        --red: #ff2d3a;
+        --title: "Anton", sans-serif;
+        --label: "Montserrat", sans-serif;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+      #root { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: #000; }
+
+      /* ---------- footage ---------- */
+      .shot { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; object-fit: cover; transform-origin: 50% 50%; }
+      #shade { position: absolute; inset: 0; z-index: 5;
+        background: linear-gradient(180deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.25) 28%, rgba(0,0,0,0) 42%, rgba(0,0,0,0) 56%, rgba(0,0,0,.35) 68%, rgba(0,0,0,0) 80%); }
+      #painTint { position: absolute; inset: 0; z-index: 6; opacity: 0;
+        background: radial-gradient(ellipse at 50% 60%, rgba(255,0,0,0) 35%, rgba(190,0,20,.6) 100%); }
+      #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 90; }
+
+      /* ---------- graphic primitives ---------- */
+      .g { position: absolute; opacity: 0; visibility: hidden; z-index: 20; }
+      .band { left: 192px; width: 696px; text-align: center; } /* centred on 540, inside the 120–888 safe column */
+      .title { font-family: var(--title); text-transform: uppercase; line-height: 1.04; text-align: center;
+        -webkit-text-stroke: calc(16px * var(--k)) #000; paint-order: stroke fill; }
+      .chip { font-family: var(--label); font-weight: 800; text-transform: uppercase; color: #000;
+        font-size: calc(48px * var(--k)); padding: calc(16px * var(--k)) calc(34px * var(--k));
+        border-radius: 999px; background: var(--neon); box-shadow: 0 8px 0 rgba(0,0,0,.55); white-space: nowrap; }
+      .check { display: flex; align-items: center; gap: 16px; background: rgba(0,0,0,.8); border: 4px solid var(--neon);
+        border-radius: 22px; padding: 12px 26px 12px 14px; font-family: var(--label); font-weight: 900; text-transform: uppercase;
+        color: #fff; font-size: calc(54px * var(--k)); white-space: nowrap; }
+      .check svg { width: 44px; height: 44px; flex: none; }
+
+      /* 1 hook */
+      #hookA { top: 306px; font-size: calc(100px * var(--k)); color: #fff; }
+      #hookB { top: 370px; font-size: calc(200px * var(--k)); color: var(--red); }
+      #hookC { top: 512px; font-size: calc(200px * var(--k)); color: var(--red); }
+      #hookD { top: 656px; font-size: calc(120px * var(--k)); color: var(--yellow); }
+      /* pulsing ring on the bruised toenail (B-roll c01) */
+      #nailRing { left: 330px; top: 690px; width: 540px; height: 540px; border-radius: 50%; border: 12px solid var(--red);
+        box-shadow: 0 0 30px rgba(255,45,58,.8), inset 0 0 24px rgba(255,45,58,.5); }
+      #nailPulse { left: 330px; top: 690px; width: 540px; height: 540px; border-radius: 50%; border: 8px solid var(--red); }
+
+      #xMark { left: 395px; top: 820px; width: 290px; height: 290px; }
+
+      /* 2 sports */
+      #chips { left: 120px; top: 300px; display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
+      #chips .chip { opacity: 0; visibility: hidden; }
+
+      /* 3 friction */
+      #friction { left: 240px; top: 900px; width: 520px; height: 204px; }
+
+      /* 4 pain */
+      #terukA { top: 330px; font-size: calc(100px * var(--k)); color: #fff; }
+      #terukB { top: 400px; font-size: calc(180px * var(--k)); color: var(--red); }
+
+      /* 5 product */
+      #prodA { top: 306px; font-size: calc(100px * var(--k)); color: #fff; }
+      #prodB { top: 372px; font-size: calc(180px * var(--k)); color: var(--neon); }
+
+      /* 6 grip + touch */
+      #gripTag { left: 0; width: 1080px; top: 310px; text-align: center; }
+      #gripTag .chip { display: inline-block; }
+      #gripLine { left: 536px; top: 372px; width: 8px; height: 220px; background: var(--neon); transform-origin: 50% 0; }
+      #gripRing { left: 330px; top: 590px; width: 420px; height: 420px; border-radius: 50%; border: 8px solid var(--neon);
+        box-shadow: 0 0 30px rgba(57,255,20,.7), inset 0 0 30px rgba(57,255,20,.4); }
+      #chkKesat { left: 192px; width: 696px; top: 320px; display: flex; justify-content: center; }
+      #chkTimbul { left: 192px; width: 696px; top: 420px; display: flex; justify-content: center; }
+
+      /* 7 risk meter */
+      #meter { left: 170px; top: 300px; width: 700px; }
+      #meter .mt { font-family: var(--label); font-weight: 900; color: #fff; font-size: calc(50px * var(--k)); text-align: center;
+        -webkit-text-stroke: 6px #000; paint-order: stroke fill; margin-bottom: 14px; letter-spacing: 2px; }
+      #meter .track { position: relative; height: 54px; border-radius: 30px; background: rgba(0,0,0,.72); border: 4px solid #fff; overflow: hidden; }
+      #meter .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 92%; background: var(--red); border-radius: 30px; }
+      #meter .ends { display: flex; justify-content: space-between; margin-top: 10px; font-family: var(--label); font-weight: 900;
+        font-size: calc(44px * var(--k)); color: #fff; -webkit-text-stroke: 5px #000; paint-order: stroke fill; }
+
+      /* 8 breathable */
+      #breath { top: 296px; }
+      #breath .pre { display: block; font-family: var(--title); color: #fff; font-size: calc(90px * var(--k));
+        -webkit-text-stroke: 10px #000; paint-order: stroke fill; margin-bottom: 6px; }
+      #breath .pill { display: inline-block; background: var(--neon); color: #000; font-family: var(--title); text-transform: uppercase;
+        font-size: calc(130px * var(--k)); padding: 4px 36px 0; border-radius: 26px; box-shadow: 0 10px 0 rgba(0,0,0,.55); }
+      #air { left: 120px; top: 600px; width: 380px; height: 260px; }
+      #chkPanas { left: 120px; top: 900px; }
+      #chkKuap { left: 120px; top: 1010px; }
+
+      /* 9–10 CTA */
+      #ctaA { top: 306px; font-size: calc(100px * var(--k)); color: #fff; }
+      #ctaB { top: 374px; font-size: calc(200px * var(--k)); color: var(--neon); }
+      #dots { left: 192px; width: 696px; top: 548px; display: flex; justify-content: center; gap: 26px; }
+      #dots i { display: block; width: 58px; height: 58px; border-radius: 50%; border: 6px solid #fff; box-shadow: 0 6px 0 rgba(0,0,0,.5); opacity: 0; }
+      #btn { left: 150px; top: 880px; width: 630px; height: 150px; border-radius: 80px; background: var(--yellow);
+        display: flex; align-items: center; justify-content: center; box-shadow: 0 12px 0 #b39d00, 0 20px 40px rgba(0,0,0,.6); }
+      #btn span { font-family: var(--title); font-size: calc(130px * var(--k)); color: #000; text-transform: uppercase; letter-spacing: 1px; }
+      #ripple { left: 150px; top: 880px; width: 630px; height: 150px; border-radius: 80px; border: 8px solid var(--yellow); z-index: 19; }
+      #soldout { left: 120px; width: 660px; top: 1066px; font-size: calc(110px * var(--k)); color: #fff; }
+      #soldout b { color: var(--red); font-weight: 400; }
+
+      /* ---------- captions: 60 px Anton, caps, black stroke, bottom edge at y 1248 ---------- */
+      #cap { position: absolute; left: 0; width: 1080px; bottom: 690px; height: 80px; z-index: 40; overflow: visible; }
+      .cg { position: absolute; left: 0; right: 0; bottom: 0; text-align: center; opacity: 0; visibility: hidden; white-space: nowrap; }
+      .cw { display: inline-block; margin: 0 15px; font-family: var(--title); font-size: 60px; line-height: 1.15; text-transform: uppercase;
+        color: #fff; -webkit-text-stroke: 10px #000; paint-order: stroke fill; transform-origin: 50% 80%; }
+      .cw.kw { color: var(--neon); }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="32.15" data-width="1080" data-height="1920" data-fps="60">
+
+      <!-- ===== voiceover (VO 2): original file, unity gain, untouched, starts at 0 — measured -29.5 LUFS ===== -->
+      <audio id="vo" class="clip" src="assets/vo.wav" data-start="0" data-duration="30.858" data-volume="1" data-track-index="20"></audio>
+
+      <!-- ===== footage: 10 single-shot clips at 1x; each levelled to -56.5 LUFS (27 dB under the VO) via data-volume, cap +12 dB ===== -->
+      <video id="c01" class="clip shot" src="assets/clips/c01.mp4" data-start="0"     data-duration="2.2"  data-media-start="0" data-volume="0.0309"  data-has-audio="true" data-track-index="1" playsinline></video><!-- B-roll toe: -26.3 LUFS → -30.2 dB -->
+      <video id="c02" class="clip shot" src="assets/clips/c02.mp4" data-start="2.2"   data-duration="2.05" data-media-start="0" data-volume="0.10715" data-has-audio="true" data-track-index="1" playsinline></video><!-- old sock: -37.1 LUFS → -19.4 dB -->
+      <video id="c03" class="clip shot" src="assets/clips/c03.mp4" data-start="4.25"  data-duration="3.03" data-media-start="0" data-volume="0.05248" data-has-audio="true" data-track-index="1" playsinline></video><!-- B-roll jogging: -30.9 LUFS → -25.6 dB -->
+      <video id="c04" class="clip shot" src="assets/clips/c04.mp4" data-start="7.28"  data-duration="2.17" data-media-start="0" data-volume="0.02483" data-has-audio="true" data-track-index="1" playsinline></video><!-- court feet: -24.4 LUFS → -32.1 dB -->
+      <video id="c05" class="clip shot" src="assets/clips/c05.mp4" data-start="9.45"  data-duration="2.55" data-media-start="0" data-volume="0.12162" data-has-audio="true" data-track-index="1" playsinline></video><!-- B-roll leg pain: -38.2 LUFS → -18.3 dB -->
+      <video id="c06" class="clip shot" src="assets/clips/c06.mp4" data-start="12"    data-duration="3.72" data-media-start="0" data-volume="0.1135"  data-has-audio="true" data-track-index="1" playsinline></video><!-- reveal: -37.6 LUFS → -18.9 dB -->
+      <video id="c07" class="clip shot" src="assets/clips/c07.mp4" data-start="15.72" data-duration="4.58" data-media-start="0" data-volume="0.11885" data-has-audio="true" data-track-index="1" playsinline></video><!-- grip touch: -38.0 LUFS → -18.5 dB -->
+      <video id="c08" class="clip shot" src="assets/clips/c08.mp4" data-start="20.3"  data-duration="3.54" data-media-start="0" data-volume="0.02754" data-has-audio="true" data-track-index="1" playsinline></video><!-- jumping: -25.3 LUFS → -31.2 dB -->
+      <video id="c09" class="clip shot" src="assets/clips/c09.mp4" data-start="23.84" data-duration="3.28" data-media-start="0" data-volume="0.01799" data-has-audio="true" data-track-index="1" playsinline></video><!-- spray: -21.6 LUFS → -34.9 dB -->
+      <video id="c10" class="clip shot" src="assets/clips/c10.mp4" data-start="27.12" data-duration="5.03" data-media-start="0" data-volume="0.18408" data-has-audio="true" data-track-index="1" playsinline></video><!-- CTA socks: -41.8 LUFS → -14.7 dB -->
+
+      <div id="shade"></div>
+      <div id="painTint"></div>
+
+      <!-- 1 · hook -->
+      <div id="hookA" class="g title band">Kalau tak nak jadi</div>
+      <div id="hookB" class="g title band">Melecet</div>
+      <div id="hookC" class="g title band">&amp; Lebam</div>
+      <div id="hookD" class="g title band">Macam ni?</div>
+      <div id="nailRing" class="g"></div>
+      <div id="nailPulse" class="g"></div>
+      <svg id="xMark" class="g" viewBox="0 0 300 300">
+        <circle cx="150" cy="150" r="130" fill="rgba(0,0,0,.35)" stroke="#ff2d3a" stroke-width="22" />
+        <path d="M92 92 L208 208 M208 92 L92 208" stroke="#ff2d3a" stroke-width="26" stroke-linecap="round" />
+      </svg>
+
+      <!-- 2 · jogging / running -->
+      <div id="chips" class="g">
+        <div class="chip" id="chip1">Jogging</div>
+        <div class="chip" id="chip2">Running</div>
+      </div>
+
+      <!-- 3 · friction -->
+      <svg id="friction" class="g" viewBox="0 0 520 204">
+        <path id="arrL" d="M20 64 L100 14 L100 44 L240 44 L240 84 L100 84 L100 114 Z" fill="#ff2d3a" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+        <path id="arrR" d="M500 140 L420 90 L420 120 L280 120 L280 160 L420 160 L420 190 Z" fill="#ffe600" stroke="#000" stroke-width="6" stroke-linejoin="round" />
+      </svg>
+
+      <!-- 4 · pain -->
+      <div id="terukA" class="g title band">Boleh jadi</div>
+      <div id="terukB" class="g title band">Melecet<br />teruk!</div>
+
+      <!-- 5 · product -->
+      <div id="prodA" class="g title band">Tukar kepada</div>
+      <div id="prodB" class="g title band">Stokin<br />Anti-Slip</div>
+
+      <!-- 6 · grip + touch -->
+      <div id="gripTag" class="g"><span class="chip">Grip anti-slip</span></div>
+      <div id="gripLine" class="g"></div>
+      <div id="gripRing" class="g"></div>
+      <div id="chkKesat" class="g"><div class="check"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#39ff14" /><path d="M16 31 L26 41 L45 20" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /></svg>Rasa kesat</div></div>
+      <div id="chkTimbul" class="g"><div class="check"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#39ff14" /><path d="M16 31 L26 41 L45 20" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /></svg>Rasa timbul</div></div>
+
+      <!-- 7 · blister-risk meter -->
+      <div id="meter" class="g">
+        <div class="mt">RISIKO MELECET</div>
+        <div class="track"><div class="fill" id="meterFill"></div></div>
+        <div class="ends"><span>RENDAH</span><span>TINGGI</span></div>
+      </div>
+
+      <!-- 8 · breathable -->
+      <div id="breath" class="g band"><span class="pre">KAIN</span><span class="pill">Breathable</span></div>
+      <svg id="air" class="g" viewBox="0 0 380 260" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round">
+        <path class="aw" d="M20 50 C 90 10 150 90 220 50 S 330 10 360 50" />
+        <path class="aw" d="M20 130 C 90 90 150 170 220 130 S 330 90 360 130" />
+        <path class="aw" d="M20 210 C 90 170 150 250 220 210 S 330 170 360 210" />
+      </svg>
+      <div id="chkPanas" class="g check"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#39ff14" /><path d="M16 31 L26 41 L45 20" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /></svg>Tak panas</div>
+      <div id="chkKuap" class="g check"><svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="28" fill="#39ff14" /><path d="M16 31 L26 41 L45 20" fill="none" stroke="#000" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" /></svg>Tak berkuap</div>
+
+      <!-- 9 · CTA -->
+      <div id="ctaA" class="g title band">Warna dah banyak</div>
+      <div id="ctaB" class="g title band">Restock!</div>
+      <div id="dots" class="g"><i style="background:#e10f2a"></i><i style="background:#0f8a3c"></i><i style="background:#111"></i></div>
+      <div id="btn" class="g"><span>Grab sekarang</span></div>
+      <div id="ripple" class="g"></div>
+      <div id="soldout" class="g title">Sebelum <b>sold out!</b></div>
+
+      <div id="cap"></div>
+      <div id="flash"></div>
+      <div id="sfx"></div>
+    </div>
+
+    <script>
+      // ------------------------------------------------------------------ data
+      const DUR = 32.15;
+      const CLIPS = [
+        ["c01", 0, 2.2], ["c02", 2.2, 4.25], ["c03", 4.25, 7.28], ["c04", 7.28, 9.45], ["c05", 9.45, 12.0],
+        ["c06", 12.0, 15.72], ["c07", 15.72, 20.3], ["c08", 20.3, 23.84], ["c09", 23.84, 27.12], ["c10", 27.12, DUR],
+      ];
+      const CUTS = CLIPS.slice(1).map((c) => c[1]);
+
+      // Self-synthesised SFX (tools/synth_sfx.py), each ~-40 LUFS = ~10 dB under the voiceover.
+      // Whooshes are pre-rolled 0.27 s so their swell lands on the cut.
+      const SFX = [
+        ["zap", 0.0], ["impact", 0.88], ["pop", 1.36], ["pop", 2.9],
+        ["pop", 6.04], ["pop", 6.5],
+        ["zap", 8.18],
+        ["impact", 11.18], ["riser", 11.56], ["impact", 13.16], ["ding", 14.88],
+        ["pop", 16.98], ["pop", 18.34], ["ding", 19.02],
+        ["zap", 21.9], ["ding", 24.62], ["pop", 25.54], ["pop", 25.9],
+        ["cha-ching", 28.38], ["pop", 29.34], ["impact", 29.74],
+        ...CUTS.map((c) => ["whoosh", +(c - 0.27).toFixed(2)]),
+      ];
+      const SFX_LEN = { whoosh: 0.55, pop: 0.12, ding: 1.4, impact: 0.9, "cha-ching": 1.3, riser: 1.6, zap: 0.32 };
+
+      // Caption groups (2–3 words) from the word-level transcript, word starts snapped to the end of each pause.
+      // Clauses an on-screen graphic already spells out are deliberately absent: "kalau tak nak jadi korang melecet
+      // lebam macam ni", "macam jogging dan running tu", "jadi korang boleh jadi melecet teruk", "korang tukar kepada
+      // stokin jenis anti-slip macam ni", "memang rasa kesat dan rasa timbul", "dan kain dia pun breathable",
+      // "tak panas berkuap", "sekarang warna dah banyak restock", "korang boleh grab sekarang sebelum sold out".
+      const CAPS = [
+        [["korang", 2.39, 2.54], ["kena", 2.54, 2.66], ["tukar", 2.66, 2.9, 1]],
+        [["stokin", 2.9, 3.28], ["yang", 3.28, 3.4], ["korang", 3.4, 3.6]],
+        [["pakai", 3.6, 3.82], ["tu.", 3.82, 4.0]],
+        [["especially", 4.38, 4.56], ["yang", 4.56, 4.88]],
+        [["aktif", 4.88, 5.08, 1], ["bersukan,", 5.08, 5.42, 1]],
+        [["tapak", 7.46, 7.6], ["kaki", 7.6, 7.84], ["korang", 7.84, 8.04]],
+        [["akan", 8.04, 8.18], ["bergesel", 8.18, 8.6, 1]],
+        [["dalam", 8.6, 8.7], ["kasut", 8.7, 9.02], ["tau.", 9.02, 9.18]],
+        [["sebab", 9.68, 9.78], ["tu", 9.78, 9.88], ["lama-lama,", 9.88, 10.32]],
+        [["so", 12.27, 12.3], ["lepas", 12.3, 12.58], ["ni,", 12.58, 12.82]],
+        [["dekat", 16.08, 16.2], ["tapak", 16.2, 16.54]],
+        [["ni,", 16.54, 16.66], ["dia", 16.72, 16.84], ["ada", 16.84, 16.98]],
+        [["grip", 16.98, 17.18, 1], ["dot", 17.18, 17.32, 1], ["tau.", 17.32, 17.52]],
+        [["bila", 19.46, 19.72], ["korang", 19.72, 19.9], ["sentuh.", 19.9, 20.22]],
+        [["so", 20.71, 20.76], ["lepas", 20.76, 21.0], ["ni,", 21.0, 21.16]],
+        [["tapak", 21.22, 21.44], ["kaki", 21.44, 21.66], ["korang", 21.66, 21.9]],
+        [["kurang", 21.9, 22.16, 1], ["bergesel", 22.16, 22.68, 1]],
+        [["bila", 22.68, 23.02], ["korang", 23.02, 23.24]],
+        [["aktif", 23.24, 23.46, 1], ["bergerak.", 23.46, 23.78, 1]],
+        [["bila", 26.2, 26.38], ["korang", 26.38, 26.56], ["pakai", 26.56, 26.7]],
+        [["lama", 26.7, 26.88], ["tau.", 26.88, 27.14]],
+      ];
+
+      // ------------------------------------------------------------------ DOM
+      const sfxHost = document.getElementById("sfx");
+      SFX.forEach(([name, at], i) => {
+        const a = document.createElement("audio");
+        a.id = "sfx" + i;
+        a.className = "clip";
+        a.src = "assets/sfx/" + name + ".wav";
+        a.dataset.start = String(Math.max(0, at));
+        a.dataset.duration = String(SFX_LEN[name]);
+        a.dataset.volume = "1";
+        a.dataset.trackIndex = "30";
+        sfxHost.appendChild(a);
+      });
+
+      const capHost = document.getElementById("cap");
+      const capGroups = CAPS.map((words, gi) => {
+        const g = document.createElement("div");
+        g.className = "cg";
+        g.id = "cg" + gi;
+        const spans = words.map(([w, s, e, kw]) => {
+          const sp = document.createElement("span");
+          sp.className = "cw" + (kw ? " kw" : "");
+          sp.textContent = w.toUpperCase();
+          g.appendChild(sp);
+          return { el: sp, s, e, kw: !!kw };
+        });
+        capHost.appendChild(g);
+        return { el: g, words: spans, s: words[0][1], e: words[words.length - 1][2] };
+      });
+
+      // ------------------------------------------------------------------ timeline
+      const tl = gsap.timeline({ paused: true });
+      const show = (el, at) => tl.set(el, { autoAlpha: 1 }, at);
+      const popIn = (el, at, from = {}) => {
+        tl.set(el, { autoAlpha: 1 }, at);
+        tl.fromTo(el, { scale: 0.35, ...from }, { scale: 1, x: 0, y: 0, rotation: 0, duration: 0.42, ease: "back.out(2.6)" }, at);
+      };
+      const dropIn = (el, at) => {
+        tl.set(el, { autoAlpha: 1 }, at);
+        tl.fromTo(el, { y: -50, opacity: 0 }, { y: 0, opacity: 1, duration: 0.25, ease: "power3.out" }, at);
+      };
+      const slam = (el, at) => {
+        tl.set(el, { autoAlpha: 1 }, at);
+        tl.fromTo(el, { scale: 2.4, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.22, ease: "power4.in" }, at);
+      };
+      const out = (el, at, d = 0.2) => {
+        tl.to(el, { opacity: 0, y: -36, duration: d, ease: "power2.in" }, at);
+        tl.set(el, { autoAlpha: 0 }, at + d);
+      };
+      const shake = (els, at, amp = 16) =>
+        tl.to(els, { keyframes: { x: [0, -amp, amp * 0.8, -amp * 0.6, amp * 0.4, 0], y: [0, amp * 0.5, -amp * 0.4, amp * 0.3, 0, 0] }, duration: 0.32, ease: "none" }, at);
+
+      // Footage: brief zoom-in punch at the head of every clip, then a slow drift; white flash on each cut.
+      CLIPS.forEach(([id, a, b]) => {
+        tl.fromTo("#" + id, { scale: 1.0 }, { scale: 1.08, duration: 0.45, ease: "expo.out" }, a);
+        tl.to("#" + id, { scale: 1.11, duration: b - a - 0.45, ease: "none" }, a + 0.45);
+      });
+      tl.set("#c01", { transformOrigin: "560px 1000px" }, 0); // punch in toward the bruised toenail
+      tl.set("#c05", { transformOrigin: "640px 1150px" }, 0); // punch in toward the hand on the shin
+      tl.set("#flash", { opacity: 0 }, 0);
+      CUTS.forEach((c) => tl.fromTo("#flash", { opacity: 0.9 }, { opacity: 0, duration: 0.2, ease: "power2.out", immediateRender: false }, c));
+
+      // 1 · HOOK (0 – 4.25): first frame already carries the hook line (thumbnail); the title rides over the cut
+      show("#hookA", 0);
+      slam("#hookB", 0.88);
+      slam("#hookC", 1.16);
+      shake(["#c01", "#hookB", "#hookC"], 1.38, 14);
+      popIn("#hookD", 1.36, { rotation: -6 });
+      tl.set("#nailRing", { autoAlpha: 1 }, 1.16);
+      tl.fromTo("#nailRing", { scale: 1.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.8)" }, 1.16);
+      tl.to("#nailRing", { scale: 1.05, duration: 0.25, repeat: 1, yoyo: true, ease: "sine.inOut" }, 1.5);
+      tl.set("#nailPulse", { autoAlpha: 1 }, 1.5);
+      tl.fromTo("#nailPulse", { scale: 1, opacity: 0.9 }, { scale: 1.35, opacity: 0, duration: 0.55, repeat: 0, ease: "power1.out", immediateRender: false }, 1.5);
+      out("#nailRing", 2.02, 0.16); out("#nailPulse", 2.02, 0.16);
+      popIn("#xMark", 2.9, { rotation: -25 });
+      ["#hookA", "#hookB", "#hookC", "#hookD", "#xMark"].forEach((s) => out(s, 4.02));
+
+      // 2 · JOGGING / RUNNING (4.25 – 7.28)
+      show("#chips", 4.25);
+      popIn("#chip1", 6.04, { x: -160 });
+      popIn("#chip2", 6.5, { x: -160 });
+      out("#chips", 7.06);
+
+      // 3 · FRICTION (7.28 – 9.45)
+      popIn("#friction", 8.18);
+      tl.to("#arrL", { x: 36, duration: 0.12, repeat: 7, yoyo: true, ease: "sine.inOut" }, 8.4);
+      tl.to("#arrR", { x: -36, duration: 0.12, repeat: 7, yoyo: true, ease: "sine.inOut" }, 8.4);
+      out("#friction", 9.24);
+
+      // 4 · PAIN (9.45 – 12.0)
+      tl.to("#painTint", { opacity: 1, duration: 0.5 }, 9.7);
+      dropIn("#terukA", 10.65);
+      slam("#terukB", 11.18);
+      shake(["#c05", "#terukB"], 11.4, 20);
+      tl.to("#painTint", { opacity: 0.55, duration: 0.16, repeat: 3, yoyo: true, ease: "sine.inOut" }, 11.18);
+      tl.set("#painTint", { opacity: 0 }, 12.0);
+      out("#terukA", 11.84, 0.16); out("#terukB", 11.84, 0.16);
+
+      // 5 · PRODUCT (12.0 – 15.72)
+      dropIn("#prodA", 13.16);
+      slam("#prodB", 13.6);
+      tl.fromTo("#prodB", { textShadow: "0 0 0px rgba(57,255,20,0)" }, { textShadow: "0 0 40px rgba(57,255,20,.95)", duration: 0.3, repeat: 3, yoyo: true }, 14.88);
+      out("#prodA", 15.5); out("#prodB", 15.5);
+
+      // 6 · GRIP + TOUCH (15.72 – 20.3)
+      tl.set("#gripRing", { autoAlpha: 1 }, 16.2);
+      tl.fromTo("#gripRing", { scale: 0.2, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.35, ease: "back.out(2)" }, 16.2);
+      popIn("#gripTag", 16.98);
+      tl.set("#gripLine", { autoAlpha: 1 }, 17.06);
+      tl.fromTo("#gripLine", { scaleY: 0 }, { scaleY: 1, duration: 0.2, ease: "power2.out" }, 17.06);
+      ["#gripRing", "#gripLine", "#gripTag"].forEach((s) => out(s, 17.9));
+      popIn("#chkKesat", 18.34, { x: 120 });
+      popIn("#chkTimbul", 19.02, { x: 120 });
+      out("#chkKesat", 20.5); out("#chkTimbul", 20.5);
+
+      // 7 · LESS FRICTION (20.3 – 23.84)
+      dropIn("#meter", 20.76);
+      tl.fromTo("#meterFill", { width: "92%", backgroundColor: "#ff2d3a" }, { width: "16%", backgroundColor: "#39ff14", duration: 0.6, ease: "power3.inOut" }, 21.9);
+      out("#meter", 23.62);
+
+      // 8 · BREATHABLE (23.84 – 27.12)
+      popIn("#breath", 24.2);
+      tl.set("#air", { autoAlpha: 1 }, 24.62);
+      tl.fromTo("#air .aw", { x: -60, opacity: 0 }, { x: 40, opacity: 1, duration: 0.6, stagger: 0.1, repeat: 1, ease: "sine.inOut" }, 24.62);
+      out("#air", 25.9);
+      popIn("#chkPanas", 25.54, { x: -120 });
+      popIn("#chkKuap", 25.9, { x: -120 });
+      out("#breath", 26.96);
+      out("#chkPanas", 27.5); out("#chkKuap", 27.5);
+
+      // 9 · CTA (27.12 – end): everything lands and holds to the last frame
+      dropIn("#ctaA", 27.88);
+      slam("#ctaB", 28.3);
+      tl.fromTo("#ctaB", { rotation: 0 }, { rotation: -4, duration: 0.2, ease: "back.out(3)" }, 28.52);
+      show("#dots", 28.38);
+      tl.fromTo("#dots i", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, stagger: 0.08, ease: "back.out(3)" }, 28.38);
+      popIn("#btn", 29.34);
+      tl.to("#btn", { scale: 1.06, duration: 0.25, repeat: 5, yoyo: true, ease: "sine.inOut" }, 30.4); // 6 legs → ends back at 1.0 (31.9)
+      tl.set("#ripple", { autoAlpha: 1 }, 29.6);
+      tl.fromTo("#ripple", { scaleX: 1, scaleY: 1, opacity: 1 }, { scaleX: 1.12, scaleY: 1.5, opacity: 0, duration: 0.6, repeat: 3, repeatDelay: 0.1, ease: "power2.out", immediateRender: false }, 29.6);
+      slam("#soldout", 29.74);
+      shake(["#c10", "#soldout"], 29.96, 12);
+
+      // captions: one group at a time; active word yellow, keywords neon green
+      capGroups.forEach((g, i) => {
+        const next = capGroups[i + 1];
+        const end = Math.min(g.e + 0.3, next ? next.s : DUR);
+        tl.set(g.el, { autoAlpha: 1 }, g.s);
+        tl.fromTo(g.el, { scale: 0.86, y: 14 }, { scale: 1, y: 0, duration: 0.12, ease: "back.out(2)" }, g.s);
+        tl.set(g.el, { autoAlpha: 0 }, end);
+        g.words.forEach((w, j) => {
+          const off = j + 1 < g.words.length ? g.words[j + 1].s : end;
+          tl.set(w.el, { color: w.kw ? "#39ff14" : "#ffe600", scale: 1.12 }, w.s);
+          tl.set(w.el, { color: w.kw ? "#39ff14" : "#ffffff", scale: 1 }, off);
+        });
+      });
+
+      tl.to({}, { duration: 0.001 }, DUR - 0.001); // pin the timeline length to the film
+      window.__timelines = window.__timelines || {};
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
