@@ -2,3 +2,5 @@ node_modules
 .hyperframes/
 out/render.log
 assets/clips/
+out/*
+!out/stokin-sukan-grip.mp4
