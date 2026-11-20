@@ -26,10 +26,10 @@ Masa setiap perkataan: `transcript.words.json` (whisper large-v3).
 
 | # | Masa | Sumber | Babak | Gain → −57 LUFS |
 | --- | --- | --- | --- | --- |
-| c01 | 0.00–3.55 | video_20260802_130614 @1.15 | Hook: stokin lama | −31.3 dB |
+| c01 | 0.00–3.55 | B Rolls/video_20250529_093604 @7.55 (crop 1600×2844 @320,0) | Hook: kuku jari kaki lebam | −29.9 dB |
 | c02 | 3.55–6.20 | video_20260906_194651 @6.00 | Main pickleball | −32.2 dB |
 | c03 | 6.20–9.45 | video_20260906_194608 @9.00 | Kaki bergerak atas court | −31.2 dB |
-| c04 | 9.45–12.70 | lv_0_20260826195949 @0.20 | Stokin biasa + titik sakit | −10.8 dB |
+| c04 | 9.45–12.70 | B Rolls/video_20251226_091215 @1.00 | Pegang kaki kesakitan | −17.2 dB |
 | c05 | 12.70–15.90 | lv_0_20260801220651 @5.75 | Reveal stokin anti-slip | +7.0 dB |
 | c06 | 15.90–20.10 | lv_0_20260808145834 @7.15 | Grip dot + sentuh | −18.9 dB |
 | c07 | 20.10–22.62 | lv_0_20260801221135 @17.00 | Lompat dengan kasut | −31.9 dB |
