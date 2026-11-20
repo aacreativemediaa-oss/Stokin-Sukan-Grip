@@ -1,0 +1,8 @@
+{
+  "name": "stokin-sukan-grip",
+  "private": true,
+  "scripts": {
+    "check": "npx hyperframes@0.9.72 check",
+    "render": "npx hyperframes@0.9.72 render -f 60 -q delivery -o out/stokin-sukan-grip.mp4"
+  }
+}
